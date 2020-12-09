@@ -1,35 +1,13 @@
 const Knex = require('knex');
 const BookmarksService = require('../src/bookmarks/bookmarks-service');
 const knex = require('knex');
+const { makeBookmarks } = require('./bookmarks.fixtures');
 const { expect } = require('chai');
 const { getAllBookmarks } = require('../src/bookmarks/bookmarks-service');
 
 describe('Bookmark service', () => {
   let db;
-
-  const bookmarks = [
-    {
-      id: 1,
-      title: 'Google 1',
-      url: 'https://www.google.com',
-      description: 'A search Engine',
-      rating: 3
-    },
-    {
-      id: 2,
-      title: 'Yahoo ',
-      url: 'https://www.yahoo.com',
-      description: 'Another search Engine',
-      rating: 2
-    },
-    {
-      id: 3,
-      title: 'Facebook',
-      url: 'https://www.facebook.com',
-      description: 'A Social media',
-      rating: 3
-    }
-  ];
+  const bookmarks = makeBookmarks();
   before('connect to database', () => {
     db = knex({
       client: 'pg',

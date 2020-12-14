@@ -1,9 +1,7 @@
-const Knex = require('knex');
 const BookmarksService = require('../src/bookmarks/bookmarks-service');
 const knex = require('knex');
 const { makeBookmarks } = require('./bookmarks.fixtures');
 const { expect } = require('chai');
-const { getAllBookmarks } = require('../src/bookmarks/bookmarks-service');
 
 describe('Bookmark service', () => {
   let db;
@@ -48,7 +46,7 @@ describe('Bookmark service', () => {
     it('updateBookmark() updates and returns updated bookmark', () => {
       const id = 1;
       const expectedBkmk = bookmarks.find((bk) => bk.id === id);
-      console.log(expectedBkmk);
+
       const updt = {
         title: 'Google'
       };

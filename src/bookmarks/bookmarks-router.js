@@ -2,6 +2,7 @@ const express = require('express');
 const logger = require('../logger');
 const { v4: uuid } = require('uuid');
 const bookmarks = require('../store');
+const validUrl = require('valid-url');
 
 const bookmarksRouter = express.Router();
 
@@ -22,6 +23,17 @@ bookmarksRouter
       logger.error('Url is required');
       return res.status(400).send('Invalid data');
     }
+    if (!validUrl.isUri(url)) {
+      logger.error('URL format is invalid');
+      return res.status(400).send('Invalid data');
+    }
+    if (
+      rating &&
+      (isNaN(rating) || ![1, 2, 3, 4, 5].includes(parseInt(rating)))
+    ) {
+      logger.error('Rating is not a number');
+      return res.status(400).send('Invalid data');
+    }
     const bookmark = {
       id,
       url,
@@ -29,6 +41,7 @@ bookmarksRouter
       description,
       rating: parseInt(rating)
     };
+
     bookmarks.push(bookmark);
 
     res

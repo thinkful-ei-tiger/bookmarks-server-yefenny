@@ -37,10 +37,11 @@ bookmarksRouter
     const bookmark = {
       id,
       url,
-      title,
-      description,
-      rating: parseInt(rating)
+      title
     };
+
+    if (description) bookmark.description = description;
+    if (rating) bookmark.rating = parseInt(rating);
 
     bookmarks.push(bookmark);
 

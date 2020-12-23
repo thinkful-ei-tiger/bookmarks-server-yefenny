@@ -58,9 +58,6 @@ describe('Bookmarks endpoint', () => {
         });
       });
   });
-<<<<<<< HEAD
-  describe('POST /bookmarks error messaje if required values are not included', () => {
-=======
   it(`POST /bookmarks returns 400 'Invalid data' when invalid url`, () => {
     const bookmark = {
       url: 'google',
@@ -98,7 +95,6 @@ describe('Bookmarks endpoint', () => {
       .expect(400, 'Invalid data');
   });
   describe('POST /bookmarks error messaje if required values are nor included', () => {
->>>>>>> organizing-server
     const requiredValues = [
       {
         require: 'title',

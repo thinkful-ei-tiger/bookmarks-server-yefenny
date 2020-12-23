@@ -46,7 +46,7 @@ describe.only('Bookmarks endpoints', () => {
       });
     });
   });
-  describe('GET /articles/:id', () => {
+  describe('GET /bookmarks/:id', () => {
     context('given bookmarks has data', () => {
       beforeEach('insert data', () => db('bookmarks').insert(bookmarks));
 
@@ -64,6 +64,115 @@ describe.only('Bookmarks endpoints', () => {
           .set('Authorization', 'bearer my-token')
           .expect(404, { error: { message: `Article doesn't exists` } });
       });
+    });
+  });
+  describe('POST /bookmarks', () => {
+    it('POST /bookmarks/ create a new bookmark and return it', () => {
+      return supertest(app)
+        .post('/bookmarks')
+        .set('Authorization', 'bearer my-token')
+        .send({
+          url: 'https://www.npmjs.com/package/supertest',
+          title: 'Supertest',
+          description: 'supertest documentation',
+          rating: 4
+        })
+        .expect(201)
+        .expect('Content-Type', /json/)
+        .then((res) => {
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.include({
+            url: 'https://www.npmjs.com/package/supertest',
+            title: 'Supertest',
+            description: 'supertest documentation',
+            rating: 4
+          });
+        });
+    });
+    it(`POST /bookmarks returns 400 'Invalid data' when invalid url`, () => {
+      const bookmark = {
+        url: 'google',
+        title: 'search engine'
+      };
+      return supertest(app)
+        .post('/bookmarks')
+        .set('Authorization', 'bearer my-token')
+        .send(bookmark)
+        .expect(400, 'Invalid data');
+    });
+    it(`returns 400 'invalid data' if rating is not a number`, () => {
+      const bookmark = {
+        url: 'http://google.com',
+        title: 'search engine',
+        rating: 'val'
+      };
+      return supertest(app)
+        .post('/bookmarks')
+        .set('Authorization', 'bearer my-token')
+        .send(bookmark)
+        .expect(400, 'Invalid data');
+    });
+
+    it(`returns 400 'invalid data' if rating is not a number between 0-5`, () => {
+      const bookmark = {
+        url: 'http://google.com',
+        title: 'search engine',
+        rating: '7'
+      };
+      return supertest(app)
+        .post('/bookmarks')
+        .set('Authorization', 'bearer my-token')
+        .send(bookmark)
+        .expect(400, 'Invalid data');
+    });
+    describe('POST /bookmarks error messaje if required values are nor included', () => {
+      const requiredValues = [
+        {
+          require: 'title',
+          params: {
+            url: 'https://mochajs.org/#assertions',
+            description: 'Mocha documentation'
+          }
+        },
+        {
+          require: 'url',
+          params: { title: 'mocha', description: 'Mocha documentation' }
+        },
+        {
+          require: 'title or/and url',
+          params: { description: 'Mocha documentation' }
+        }
+      ];
+      requiredValues.forEach((vals) => {
+        it(`POST /bookmarks should return error if there is not '${vals.require}'`, () => {
+          return supertest(app)
+            .post('/bookmarks')
+            .set('Authorization', 'bearer my-token')
+            .send(vals.params)
+            .expect(400, 'Invalid data');
+        });
+      });
+    });
+  });
+  describe('DELETE /bookmarks/:id', () => {
+    beforeEach('insert data into bookmarks', () =>
+      db('bookmarks').insert(bookmarks)
+    );
+    it('DELETE /bookmarks/:id should work properly', () => {
+      return supertest(app)
+        .delete('/bookmarks/1')
+        .set('Authorization', 'bearer my-token')
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .then((res) => {
+          expect(res.body).not.to.deep.includes({ id: '8sdfbvbs65sd' });
+        });
+    });
+    it(`DELETE /bookmarks/:id returns 404 when 'Id is invalid`, () => {
+      return supertest(app)
+        .delete('/bookmarks/89')
+        .set('Authorization', 'bearer my-token')
+        .expect(404, { error: { message: 'Not found' } });
     });
   });
 });

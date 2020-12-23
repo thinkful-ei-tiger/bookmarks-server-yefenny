@@ -2,43 +2,60 @@ const express = require('express');
 const logger = require('../logger');
 const { v4: uuid } = require('uuid');
 const BookmarksService = require('./bookmarks-service');
+const bookmarks = require('../store');
+const validUrl = require('valid-url');
 
 const bookmarksRouter = express.Router();
 
-bookmarksRouter.route('/bookmarks').get((req, res, next) => {
-  const knexinstance = req.app.get('db');
-  BookmarksService.getAllBookmarks(knexinstance)
-    .then((bookmarks) => {
-      res.json(bookmarks);
-    })
-    .catch(next);
-});
-// .post((req, res) => {
-//   const id = uuid();
-//   const { url, title, description, rating } = req.body;
+bookmarksRouter
+  .route('/bookmarks')
+  .get((req, res, next) => {
+    const knexinstance = req.app.get('db');
+    BookmarksService.getAllBookmarks(knexinstance)
+      .then((bookmarks) => {
+        res.json(bookmarks);
+      })
+      .catch(next);
+  })
+  .post((req, res) => {
+    const id = uuid();
+    const { url, title, description, rating } = req.body;
 
-//   if (!title) {
-//     logger.error('Title is required');
-//     return res.status(400).send('Invalid data');
-//   }
-//   if (!url) {
-//     logger.error('Url is required');
-//     return res.status(400).send('Invalid data');
-//   }
-//   const bookmark = {
-//     id,
-//     url,
-//     title,
-//     description,
-//     rating: parseInt(rating)
-//   };
-//   bookmarks.push(bookmark);
+    if (!title) {
+      logger.error('Title is required');
+      return res.status(400).send('Invalid data');
+    }
+    if (!url) {
+      logger.error('Url is required');
+      return res.status(400).send('Invalid data');
+    }
+    if (!validUrl.isUri(url)) {
+      logger.error('URL format is invalid');
+      return res.status(400).send('Invalid data');
+    }
+    if (
+      rating &&
+      (isNaN(rating) || ![1, 2, 3, 4, 5].includes(parseInt(rating)))
+    ) {
+      logger.error('Rating is not a number');
+      return res.status(400).send('Invalid data');
+    }
+    const bookmark = {
+      id,
+      url,
+      title
+    };
 
-//   res
-//     .status(201)
-//     .location(`http://localhost:8000/bookmarks/${id}`)
-//     .json(bookmark);
-// });
+    if (description) bookmark.description = description;
+    if (rating) bookmark.rating = parseInt(rating);
+
+    bookmarks.push(bookmark);
+
+    res
+      .status(201)
+      .location(`http://localhost:8000/bookmarks/${id}`)
+      .json(bookmark);
+  });
 
 bookmarksRouter.route('/bookmarks/:id').get((req, res, next) => {
   const { id } = req.params;

@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const supertest = require('supertest');
 const app = require('../src/app');
+const bookmarks = require('../src/store');
 
 describe('Bookmarks endpoint', () => {
   it('GET /bookmarks/ returns all bookmarks in proper format ', () => {
@@ -57,7 +58,47 @@ describe('Bookmarks endpoint', () => {
         });
       });
   });
+<<<<<<< HEAD
   describe('POST /bookmarks error messaje if required values are not included', () => {
+=======
+  it(`POST /bookmarks returns 400 'Invalid data' when invalid url`, () => {
+    const bookmark = {
+      url: 'google',
+      title: 'search engine'
+    };
+    return supertest(app)
+      .post('/bookmarks')
+      .set('Authorization', 'bearer my-token')
+      .send(bookmark)
+      .expect(400, 'Invalid data');
+  });
+  it(`returns 400 'invalid data' if rating is not a number`, () => {
+    const bookmark = {
+      url: 'http://google.com',
+      title: 'search engine',
+      rating: 'val'
+    };
+    return supertest(app)
+      .post('/bookmarks')
+      .set('Authorization', 'bearer my-token')
+      .send(bookmark)
+      .expect(400, 'Invalid data');
+  });
+
+  it(`returns 400 'invalid data' if rating is not a number between 0-5`, () => {
+    const bookmark = {
+      url: 'http://google.com',
+      title: 'search engine',
+      rating: '7'
+    };
+    return supertest(app)
+      .post('/bookmarks')
+      .set('Authorization', 'bearer my-token')
+      .send(bookmark)
+      .expect(400, 'Invalid data');
+  });
+  describe('POST /bookmarks error messaje if required values are nor included', () => {
+>>>>>>> organizing-server
     const requiredValues = [
       {
         require: 'title',

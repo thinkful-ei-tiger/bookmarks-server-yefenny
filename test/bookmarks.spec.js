@@ -57,7 +57,7 @@ describe('Bookmarks endpoint', () => {
         });
       });
   });
-  describe('POST /bookmarks error messaje if required values are nor included', () => {
+  describe('POST /bookmarks error messaje if required values are not included', () => {
     const requiredValues = [
       {
         require: 'title',

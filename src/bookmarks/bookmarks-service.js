@@ -6,7 +6,7 @@ const BookmarksService = {
     return knex('bookmarks').select('*').where('id', id).first();
   },
   deleteBookmark(knex, id) {
-    return knex('bookmarks').where('id', id).delete().returning('*');
+    return knex('bookmarks').where('id', id).delete();
   },
   insertBookmark(knex, bookmark) {
     return knex('bookmarks')

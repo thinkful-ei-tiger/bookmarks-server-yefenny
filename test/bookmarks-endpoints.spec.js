@@ -17,14 +17,14 @@ describe.only('Bookmarks endpoints', () => {
   before('Clean table', () => db('bookmarks').truncate());
 
   afterEach('clean table', () => db('bookmarks').truncate());
-  describe('GET /bookmarks ', () => {
+  describe('GET /api/bookmarks ', () => {
     context('Given bookmarks has data', () => {
       beforeEach('insert data into bookmarks', () =>
         db('bookmarks').insert(bookmarks)
       );
       it('get all bookmarks with code 200', () => {
         return supertest(app)
-          .get('/bookmarks')
+          .get('/api/bookmarks')
           .set('Authorization', 'bearer my-token')
           .expect(200)
           .expect('Content-type', /json/)
@@ -40,19 +40,19 @@ describe.only('Bookmarks endpoints', () => {
     context('Given bookmarks has no data', () => {
       it('returns empty array ', () => {
         return supertest(app)
-          .get('/bookmarks/')
+          .get('/api/bookmarks/')
           .set('Authorization', 'bearer my-token')
           .expect(200, []);
       });
     });
   });
-  describe('GET /bookmarks/:id', () => {
+  describe('GET /api/bookmarks/:id', () => {
     context('given bookmarks has data', () => {
       beforeEach('insert data', () => db('bookmarks').insert(bookmarks));
 
       it('returns bookmarks in correct format', () => {
         return supertest(app)
-          .get(`/bookmarks/${bookmarks[0].id}`)
+          .get(`/api/bookmarks/${bookmarks[0].id}`)
           .set('Authorization', 'bearer my-token')
           .expect(200, bookmarks[0]);
       });
@@ -60,16 +60,16 @@ describe.only('Bookmarks endpoints', () => {
     context('given bookmarks has no data', () => {
       it(`returns 404 'Article doesn't exists' `, () => {
         return supertest(app)
-          .get(`/bookmarks/3`)
+          .get(`/api/bookmarks/3`)
           .set('Authorization', 'bearer my-token')
           .expect(404, { error: { message: `Article doesn't exists` } });
       });
     });
   });
-  describe('POST /bookmarks', () => {
-    it('POST /bookmarks/ create a new bookmark and return it', () => {
+  describe('POST /api/bookmarks', () => {
+    it('POST /api/bookmarks/ create a new bookmark and return it', () => {
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks/')
         .set('Authorization', 'bearer my-token')
         .send({
           url: 'https://www.npmjs.com/package/supertest',
@@ -89,13 +89,13 @@ describe.only('Bookmarks endpoints', () => {
           });
         });
     });
-    it(`POST /bookmarks returns 400 'Invalid data' when invalid url`, () => {
+    it(`POST /api/bookmarks returns 400 'Invalid data' when invalid url`, () => {
       const bookmark = {
         url: 'google',
         title: 'search engine'
       };
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .set('Authorization', 'bearer my-token')
         .send(bookmark)
         .expect(400, 'Invalid data');
@@ -107,7 +107,7 @@ describe.only('Bookmarks endpoints', () => {
         rating: 'val'
       };
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .set('Authorization', 'bearer my-token')
         .send(bookmark)
         .expect(400, 'Invalid data');
@@ -120,12 +120,12 @@ describe.only('Bookmarks endpoints', () => {
         rating: '7'
       };
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .set('Authorization', 'bearer my-token')
         .send(bookmark)
         .expect(400, 'Invalid data');
     });
-    describe('POST /bookmarks error messaje if required values are nor included', () => {
+    describe('POST /api/bookmarks error messaje if required values are nor included', () => {
       const requiredValues = [
         {
           require: 'title',
@@ -144,9 +144,9 @@ describe.only('Bookmarks endpoints', () => {
         }
       ];
       requiredValues.forEach((vals) => {
-        it(`POST /bookmarks should return error if there is not '${vals.require}'`, () => {
+        it(`POST /api/bookmarks should return error if there is not '${vals.require}'`, () => {
           return supertest(app)
-            .post('/bookmarks')
+            .post('/api/bookmarks/')
             .set('Authorization', 'bearer my-token')
             .send(vals.params)
             .expect(400, 'Invalid data');
@@ -154,25 +154,65 @@ describe.only('Bookmarks endpoints', () => {
       });
     });
   });
-  describe('DELETE /bookmarks/:id', () => {
+  describe('DELETE /api/bookmarks/:id', () => {
     beforeEach('insert data into bookmarks', () =>
       db('bookmarks').insert(bookmarks)
     );
-    it('DELETE /bookmarks/:id should work properly', () => {
+    it('DELETE /api/bookmarks/:id should work properly', () => {
       return supertest(app)
-        .delete('/bookmarks/1')
+        .delete('/api/bookmarks/1')
         .set('Authorization', 'bearer my-token')
-        .expect(200)
-        .expect('Content-Type', /json/)
-        .then((res) => {
-          expect(res.body).not.to.deep.includes({ id: '8sdfbvbs65sd' });
-        });
+        .expect(204);
     });
-    it(`DELETE /bookmarks/:id returns 404 when 'Id is invalid`, () => {
+    it(`DELETE /api/bookmarks/:id returns 404 when 'Id is invalid`, () => {
       return supertest(app)
-        .delete('/bookmarks/89')
+        .delete('/api/bookmarks/89')
         .set('Authorization', 'bearer my-token')
         .expect(404, { error: { message: 'Not found' } });
+    });
+  });
+  describe('PATCH /api/bookmarks/:id', () => {
+    context('Given bookmarks has no data', () => {
+      it(` returns 404 when bookmark doest exists`, () => {
+        return supertest(app)
+          .patch('/api/bookmarks/10')
+          .set('Authorization', 'bearer my-token')
+          .expect(404, { error: { message: `Bookmark doesn't exists` } });
+      });
+    });
+    context('Given bookmarks has data ', () => {
+      beforeEach('insert bookmarks', () => db('bookmarks').insert(bookmarks));
+      it(`returns 400 when no values are supplied for any fields`, () => {
+        return supertest(app)
+          .patch('/api/bookmarks/1')
+          .set('Authorization', 'bearer my-token')
+          .expect(400, { error: { message: 'Invalid data' } });
+      });
+
+      it(`returns 204 and update bookmark`, () => {
+        const updated = {
+          title: 'other google',
+          url: 'https://www.yahoo.com'
+        };
+        const expectedBookmark = {
+          ...bookmarks[0],
+          ...updated
+        };
+        return supertest(app)
+          .patch('/api/bookmarks/1')
+          .set('Authorization', 'bearer my-token')
+          .send(updated)
+          .expect(204)
+          .then(() =>
+            supertest(app)
+              .get('/api/bookmarks/1')
+              .set('Authorization', 'bearer my-token')
+              .expect(200)
+              .then((res) => {
+                expect(res.body).to.eql(expectedBookmark);
+              })
+          );
+      });
     });
   });
 });

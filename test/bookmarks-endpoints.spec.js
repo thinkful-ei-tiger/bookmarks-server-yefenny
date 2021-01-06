@@ -62,7 +62,7 @@ describe.only('Bookmarks endpoints', () => {
         return supertest(app)
           .get(`/api/bookmarks/3`)
           .set('Authorization', 'bearer my-token')
-          .expect(404, { error: { message: `Article doesn't exists` } });
+          .expect(404, { error: { messag  e: `Article doesn't exists` } });
       });
     });
   });
